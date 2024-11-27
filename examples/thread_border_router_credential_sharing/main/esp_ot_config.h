@@ -27,7 +27,7 @@
     {                                                      \
         .radio_mode = RADIO_MODE_UART_RCP,                 \
         .radio_uart_config = {                             \
-            .port = 1,                                     \
+            .port = (uart_port_t)1,                                     \
             .uart_config =                                 \
                 {                                          \
                     .baud_rate = 460800,                   \
@@ -38,8 +38,8 @@
                     .rx_flow_ctrl_thresh = 0,              \
                     .source_clk = UART_SCLK_DEFAULT,       \
                 },                                         \
-            .rx_pin = CONFIG_PIN_TO_RCP_TX,                \
-            .tx_pin = CONFIG_PIN_TO_RCP_RX,                \
+            .rx_pin = (gpio_num_t)CONFIG_PIN_TO_RCP_TX,                \
+            .tx_pin = (gpio_num_t)CONFIG_PIN_TO_RCP_RX,                \
         },                                                 \
     }
 #else
@@ -91,20 +91,19 @@
     {                                                          \
         .host_connection_mode = HOST_CONNECTION_MODE_CLI_UART, \
         .host_uart_config = {                                  \
-            .port = 0,                                         \
-            .uart_config =                                     \
-                {                                              \
-                    .baud_rate = 115200,                       \
-                    .data_bits = UART_DATA_8_BITS,             \
-                    .parity = UART_PARITY_DISABLE,             \
-                    .stop_bits = UART_STOP_BITS_1,             \
-                    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,     \
-                    .rx_flow_ctrl_thresh = 0,                  \
-                    .source_clk = UART_SCLK_DEFAULT,           \
-                },                                             \
-            .rx_pin = UART_PIN_NO_CHANGE,                      \
-            .tx_pin = UART_PIN_NO_CHANGE,                      \
-        },                                                     \
+            .port = (uart_port_t)UART_NUM_0,               \
+            .uart_config = {                               \
+                .baud_rate = 115200,                       \
+                .data_bits = UART_DATA_8_BITS,             \
+                .parity = UART_PARITY_DISABLE,             \
+                .stop_bits = UART_STOP_BITS_1,             \
+                .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,     \
+                .rx_flow_ctrl_thresh = 0,                  \
+                .source_clk = UART_SCLK_DEFAULT,           \
+            },                                             \
+            .rx_pin = (gpio_num_t)UART_PIN_NO_CHANGE,      \
+            .tx_pin = (gpio_num_t)UART_PIN_NO_CHANGE,      \
+        }                                                  \
     }
 #elif CONFIG_OPENTHREAD_CONSOLE_TYPE_USB_SERIAL_JTAG
 #define ESP_OPENTHREAD_DEFAULT_HOST_CONFIG()                        \

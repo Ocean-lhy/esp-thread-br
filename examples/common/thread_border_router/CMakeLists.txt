@@ -1,4 +1,4 @@
-set(requires esp_ot_cli_extension openthread protocol_examples_common vfs esp_wifi esp_eth esp_rcp_update m5stack_core_s3 console)
+set(requires esp_ot_cli_extension openthread protocol_examples_common vfs esp_wifi esp_eth esp_rcp_update m5stack_core_2 console)
 set(src_dirs "src")
 set(include_dirs "include")
 

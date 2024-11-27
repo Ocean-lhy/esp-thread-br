@@ -3,6 +3,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+// #include "M5Unified.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -64,6 +71,24 @@ static void ot_br_external_coexist_init(void)
 }
 #endif /* CONFIG_EXTERNAL_COEX_ENABLE */
 
+#define WIFI_CONNECT_TIMEOUT_MS (10000)
+
+static bool example_connect_is_connected(void)
+{
+    esp_netif_ip_info_t ip_info;
+    esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    
+    if (netif == NULL) {
+        return false;
+    }
+    
+    if (esp_netif_get_ip_info(netif, &ip_info) != ESP_OK) {
+        return false;
+    }
+    
+    return ip_info.ip.addr != 0;
+}
+
 void app_main(void)
 {
     // Used eventfds:
@@ -104,8 +129,32 @@ void app_main(void)
 #endif
 
 #if CONFIG_OPENTHREAD_BR_START_WEB
-    esp_br_web_start("/spiffs");
+    std::string spiffs_path = "/spiffs";
+    esp_br_web_start(spiffs_path.c_str());
 #endif
 
     launch_openthread_border_router(&platform_config, &rcp_update_config);
+
+    // M5.begin();
+    // M5.Lcd.init();
+    // M5.Lcd.clear(0xff);
+
+    // 在WiFi连接处添加超时检查
+    int retry = 0;
+    while (retry++ < (WIFI_CONNECT_TIMEOUT_MS/1000)) {
+        if (example_connect_is_connected()) {
+            ESP_LOGI(TAG, "WiFi connected successfully");
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    
+    if (retry >= (WIFI_CONNECT_TIMEOUT_MS/1000)) {
+        ESP_LOGE(TAG, "WiFi connection timeout");
+        // 可以在这里添加重试逻辑或其他错误处理
+    }
 }
+
+#ifdef __cplusplus
+}
+#endif
