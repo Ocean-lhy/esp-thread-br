@@ -6,6 +6,8 @@
 
 // #include "M5Unified.h"
 
+#include <string>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -129,8 +131,8 @@ void app_main(void)
 #endif
 
 #if CONFIG_OPENTHREAD_BR_START_WEB
-    std::string spiffs_path = "/spiffs";
-    esp_br_web_start(spiffs_path.c_str());
+    char spiffs_path[] = "/spiffs";
+    esp_br_web_start(spiffs_path);
 #endif
 
     launch_openthread_border_router(&platform_config, &rcp_update_config);
