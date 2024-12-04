@@ -25,7 +25,9 @@
 
 #define TAG "esp_ot_br_ui"
 
-// static const char *TAG = "ui_for";
+// Global variables for UI control
+static lv_group_t *g_btn_group = NULL;  // Button control group for keypad navigation
+
 bool flag_ui_ready = false;
 lv_obj_t *epskc_generate_btn = NULL;
 lv_obj_t *epskc_clear_btn = NULL;
@@ -50,6 +52,7 @@ static void erase_all_settings(void);
 
 lv_obj_t *border_router = NULL;
 lv_obj_t *booting = NULL;
+
 static void ui_after_boot(void)
 {
     // ESP logo
@@ -111,15 +114,31 @@ void ui_after_boot_but_wifi_fail(void)
 
 esp_err_t ui_for_br_start(void)
 {
-    bsp_i2c_init();
-    bsp_display_start();
-    bsp_display_lock(0);
-    bsp_display_backlight_on();
+    ESP_ERROR_CHECK(bsp_i2c_init());
+    
+    // Initialize display
+    lv_display_t *disp = bsp_display_start();
+    if (!disp) {
+        ESP_LOGE(TAG, "Failed to initialize display");
+        return ESP_FAIL;
+    }
+
+    // Get input device
+    lv_indev_t *indev = bsp_display_get_input_dev();
+    
+    // Create button group only if keypad input device exists
+    if (indev && indev->driver->type == LV_INDEV_TYPE_KEYPAD) {
+        // Create and initialize button group
+        g_btn_group = lv_group_create();
+        lv_group_set_default(g_btn_group);
+        lv_indev_set_group(indev, g_btn_group);
+        ESP_LOGI(TAG, "Keypad navigation enabled");
+    } else {
+        ESP_LOGI(TAG, "Using touch input only");
+    }
+    
     lv_obj_set_style_bg_color(lv_scr_act(), lv_color_make(237, 238, 239), LV_STATE_DEFAULT);
     boot_animate_start(ui_after_boot);
-
-    bsp_display_unlock();
-    
 
     return ESP_OK;
 }
@@ -154,31 +173,53 @@ static void add_main_page(void)
     lv_obj_set_style_text_font(img_text, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_align_to(img_text, img_logo, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
-    // epskc generation button
+    // EPSKC generation button
     epskc_generate_btn = lv_btn_create(main_page);                                
     lv_obj_set_size(epskc_generate_btn, 200, 50);                                    
     lv_obj_set_style_bg_color(epskc_generate_btn, lv_color_make(220, 220, 220), LV_STATE_DEFAULT);
+    
+    // Add focus style and navigation only if button group exists
+    if (g_btn_group) {
+        lv_obj_set_style_bg_color(epskc_generate_btn, lv_color_make(180, 180, 180), LV_STATE_FOCUSED);
+        lv_obj_set_style_border_width(epskc_generate_btn, 2, LV_STATE_FOCUSED);
+        lv_group_add_obj(g_btn_group, epskc_generate_btn);
+    }
+    
     lv_obj_align(epskc_generate_btn, LV_ALIGN_CENTER, 0, -10);                              
-    lv_obj_add_event_cb(epskc_generate_btn, epskc_generate_cb, LV_EVENT_CLICKED, NULL); 
+    lv_obj_add_event_cb(epskc_generate_btn, epskc_generate_cb, LV_EVENT_CLICKED, NULL);
+    
+    // Create label for EPSKC button
     lv_obj_t *epskc_generate_label = lv_label_create(epskc_generate_btn);         
     lv_label_set_text(epskc_generate_label, "generate epskc"); 
     lv_obj_set_style_text_color(epskc_generate_label, lv_color_black(), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(epskc_generate_label, &lv_font_montserrat_24, LV_PART_MAIN);
     lv_obj_center(epskc_generate_label);
 
-    // br web
+    // Web interface URL display
     lv_obj_t *br_web_label = lv_label_create(main_page);
     lv_label_set_text(br_web_label, s_br_web); 
     lv_obj_set_style_text_color(br_web_label, lv_color_black(), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(br_web_label, &lv_font_montserrat_16, LV_PART_MAIN);
     lv_obj_align_to(br_web_label, epskc_generate_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 30);
 
-    // factoryreset button
+    // Factory reset button
     lv_obj_t *factoryreset_btn = lv_btn_create(main_page);                                
     lv_obj_set_size(factoryreset_btn, 80, 20);                                  
     lv_obj_set_style_bg_color(factoryreset_btn, lv_color_make(220, 220, 220), LV_STATE_DEFAULT);
+    
+    // Add focus style and navigation only if button group exists
+    if (g_btn_group) {
+        lv_obj_set_style_bg_color(factoryreset_btn, lv_color_make(180, 180, 180), LV_STATE_FOCUSED);
+        lv_obj_set_style_border_width(factoryreset_btn, 2, LV_STATE_FOCUSED);
+        lv_group_add_obj(g_btn_group, factoryreset_btn);
+        // Set default focus to EPSKC button
+        lv_group_focus_obj(epskc_generate_btn);
+    }
+    
     lv_obj_align(factoryreset_btn, LV_ALIGN_TOP_RIGHT, 0, 0);
-    lv_obj_add_event_cb(factoryreset_btn, factoryreset_cb, LV_EVENT_CLICKED, NULL); 
+    lv_obj_add_event_cb(factoryreset_btn, factoryreset_cb, LV_EVENT_CLICKED, NULL);
+    
+    // Create label for factory reset button
     lv_obj_t *factoryreset_label = lv_label_create(factoryreset_btn);         
     lv_label_set_text(factoryreset_label, "factoryreset"); 
     lv_obj_set_style_text_color(factoryreset_label, lv_color_make(255, 0, 0), LV_STATE_DEFAULT);
