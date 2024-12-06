@@ -209,11 +209,6 @@ esp_err_t bsp_speaker_init(void)
     return ESP_OK;
 }
 
-// Bit number used to represent command and parameter
-#define LCD_CMD_BITS   8
-#define LCD_PARAM_BITS 8
-#define LCD_LEDC_CH    CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
-
 esp_err_t bsp_display_brightness_init(void)
 {
     // Configure backlight GPIO
@@ -237,7 +232,6 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     }
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
-
     return gpio_set_level(BSP_LCD_BACKLIGHT, brightness_percent > 0);
 }
 
