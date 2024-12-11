@@ -71,6 +71,18 @@ menu "ESP Thread Border Router Example"
         help
             If enabled, a web server will be provided to configure and query Thread network via a Web GUI. 
 
+    config OPENTHREAD_EPHEMERALKEY_LIFE_TIME
+        int "The life time of openthread ephemeralkey"
+        default 100
+        help
+            Set the life time of openthread ephemeralkey.
+
+    config OPENTHREAD_BR_UI
+        bool 'Enable the BR UI.'
+        default n
+        help
+            If enabled, the BR UI will be enabled. 
+
     menu "External coexist wire type and pin config"
         config EXTERNAL_COEX_WIRE_TYPE
             int "The wire_type of external coexist"

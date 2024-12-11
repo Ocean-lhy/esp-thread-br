@@ -41,6 +41,10 @@
 #include "esp_ot_wifi_cmd.h"
 #endif
 
+#if CONFIG_OPENTHREAD_BR_UI
+#include "ui_for_br.h"
+#endif
+
 #if CONFIG_OPENTHREAD_BR_AUTO_START
 #include "esp_wifi.h"
 #include "example_common_private.h"
@@ -102,6 +106,50 @@ static void rcp_failure_handler(void)
 #endif
 }
 
+#if CONFIG_OPENTHREAD_BR_UI
+static void config_box_worker(void *ctx)
+{
+    while (!flag_ui_ready) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    config_box();
+    vTaskDelete(NULL);
+}
+
+static void ot_epskc_change_callback(otChangedFlags changed_flags, void *ctx)
+{
+    static bool is_configed = false;
+    otInstance *instance = esp_openthread_get_instance();
+    otDeviceRole role = otThreadGetDeviceRole(instance);
+    if ((role == OT_DEVICE_ROLE_LEADER || role == OT_DEVICE_ROLE_ROUTER || role == OT_DEVICE_ROLE_CHILD) && (!is_configed)) {
+        xTaskCreate(config_box_worker, "config_box", 2048, NULL, 5, NULL);
+        is_configed = true;
+    }
+}
+
+esp_err_t esp_openthread_state_epskc_init(otInstance *instance)
+{
+    ESP_RETURN_ON_FALSE(otSetStateChangedCallback(instance, ot_epskc_change_callback, NULL) == OT_ERROR_NONE, ESP_FAIL,
+                        TAG, "Failed to install state change callback");
+    return ESP_OK;
+}
+
+static void set_ui_ip4_addr(void) {
+    esp_netif_t *netif = esp_openthread_get_backbone_netif();
+    esp_netif_ip_info_t ip_info;
+    esp_netif_get_ip_info(netif, &ip_info);
+    sprintf((char *)s_wifi_ipv4_address, IPSTR, IP2STR(&ip_info.ip));
+    sprintf(s_br_web, "http://%s:80/index.html", s_wifi_ipv4_address);
+}
+
+static void border_router_box_init(void)
+{
+    set_ui_ip4_addr();
+    otBackboneRouterSetEnabled(esp_openthread_get_instance(), true);
+    ESP_ERROR_CHECK(esp_openthread_state_epskc_init(esp_openthread_get_instance()));
+}
+#endif
+
 static void ot_br_init(void *ctx)
 {
 #if CONFIG_OPENTHREAD_CLI_WIFI
@@ -134,12 +182,20 @@ static void ot_br_init(void *ctx)
     ESP_ERROR_CHECK(example_ethernet_connect());
     wifi_or_ethernet_connected = true;
 #endif
+#if CONFIG_OPENTHREAD_BR_UI
+    if (!wifi_or_ethernet_connected) {
+        ui_after_boot_but_wifi_fail();
+    }
+#endif
     if (wifi_or_ethernet_connected) {
         esp_openthread_lock_acquire(portMAX_DELAY);
         esp_openthread_set_backbone_netif(get_example_netif());
         ESP_ERROR_CHECK(esp_openthread_border_router_init());
 #if CONFIG_EXAMPLE_CONNECT_WIFI
         esp_ot_wifi_border_router_init_flag_set(true);
+#endif
+#if CONFIG_OPENTHREAD_BR_UI
+        border_router_box_init();
 #endif
         otOperationalDatasetTlvs dataset;
         otError error = otDatasetGetActiveTlvs(esp_openthread_get_instance(), &dataset);
@@ -200,5 +256,8 @@ void launch_openthread_border_router(const esp_openthread_platform_config_t *pla
     OT_UNUSED_VARIABLE(update_config);
 #endif
 
+#if CONFIG_OPENTHREAD_BR_UI
+    ESP_ERROR_CHECK(ui_for_br_start());
+#endif
     xTaskCreate(ot_task_worker, "ot_br_main", 8192, xTaskGetCurrentTaskHandle(), 5, NULL);
 }
