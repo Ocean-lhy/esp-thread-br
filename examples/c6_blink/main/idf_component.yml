@@ -1,0 +1,3 @@
+dependencies:
+  m5nanoc6:
+    path: ../../../components/m5nanoc6

@@ -1,0 +1,18 @@
+version: "1.0.0"
+description: Board Support Package (BSP) for M5NanoC6
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5nanoc6
+
+targets:
+  - esp32c6
+
+tags:
+  - bsp
+
+dependencies:
+  idf: ">=5.2"
+  button:
+    public: true
+    version: ">=2,<4.0"
+  led_indicator:
+    public: true
+    version: "^1.0"

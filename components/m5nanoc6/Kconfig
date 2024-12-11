@@ -1,0 +1,80 @@
+menu "Board Support Package"
+
+    config BSP_ERROR_CHECK
+        bool "Enable error check in BSP"
+        default y
+        help
+            Error check assert the application before returning the error code.
+
+    menu "LED Indicator"
+        config BSP_LED_TYPE
+            int "LED type"
+            default 0
+            range 0 2
+            help
+                Select LED type:
+                - 0: GPIO
+                - 1: RGB LED strip (WS2812)
+                - 2: RGB LED (classic)
+
+        config BSP_LED_GPIO
+            depends on BSP_LED_TYPE = 0
+            int "LED GPIO number"
+            default 7
+            range 0 48
+            help
+                GPIO number for the LED.
+
+        config BSP_LED_ACTIVE_HIGH
+            depends on BSP_LED_TYPE = 0
+            bool "LED active high"
+            default y
+            help
+                Set if LED is active high or active low.
+    endmenu
+
+    menu "Button"
+        config BSP_BUTTON_TYPE
+            int "Button type"
+            default 0
+            range 0 1
+            help
+                Select button type:
+                - 0: GPIO
+                - 1: ADC
+
+        config BSP_BUTTON_GPIO
+            depends on BSP_BUTTON_TYPE = 0
+            int "Button GPIO number"
+            default 9
+            range 0 48
+            help
+                GPIO number for the button.
+
+        config BSP_BUTTON_ACTIVE_LEVEL
+            depends on BSP_BUTTON_TYPE = 0
+            bool "Button active level"
+            default n
+            help
+                Set button active level (pressed):
+                - true: Active high
+                - false: Active low
+    endmenu
+
+    menu "WS2812 RGB LED"
+        config BSP_WS2812_DATA_GPIO
+            int "WS2812 Data GPIO number"
+            default 20
+            range 0 48
+            help
+                GPIO number for WS2812 data line.
+
+        config BSP_WS2812_ENABLE_GPIO
+            int "WS2812 Enable GPIO number"
+            default 19
+            range 0 48
+            help
+                GPIO number for WS2812 enable control.
+    endmenu
+
+endmenu
