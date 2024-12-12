@@ -31,7 +31,7 @@
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
-#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO          0
 #define BSP_CAPS_AUDIO_SPEAKER  1
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         1
@@ -311,17 +311,6 @@ typedef enum {
 } bsp_feature_t;
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
-
-/**
- * @brief Check if battery is charging
- *
- * @return
- *      - 0: Not charging
- *      - 1: Still charging
- *      - 2: Fully charged
- *      - 3: Error getting status
- */
-uint8_t bsp_battery_is_charging(void);
 
 /**************************************************************************************************
  *
