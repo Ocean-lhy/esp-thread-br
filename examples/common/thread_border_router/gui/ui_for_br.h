@@ -16,5 +16,6 @@ extern char s_wifi_ipv4_address[16];
 
 esp_err_t ui_for_br_start(void);
 void ui_after_boot_but_wifi_fail(void);
+void ui_fireware_updateing(uint8_t progress);
 
 void config_box(void);

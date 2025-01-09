@@ -58,7 +58,7 @@ static void anim_timer_cb(lv_timer_t *timer)
         lv_obj_set_style_img_opa(img_text, offset / 30.0f * 255, 0);
     }
 
-    if ((count += 2) >= 300) {
+    if ((count += 2) >= -45) {
         lv_timer_del(timer);
         lv_obj_del(page);
 

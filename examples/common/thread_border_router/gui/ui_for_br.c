@@ -51,31 +51,44 @@ static lv_obj_t *factoryreset_btn = NULL;
 
 lv_obj_t *border_router = NULL;
 lv_obj_t *booting = NULL;
+
+static uint8_t s_progress = 0;
+
+void ui_fireware_updateing(uint8_t progress)
+{
+    s_progress = progress;
+}
+
 static void ui_after_boot(void)
 {
     // ESP logo
-    LV_IMG_DECLARE(esp_logo_tiny);
-    lv_obj_t *img_logo = lv_img_create(lv_scr_act());
-    lv_img_set_src(img_logo, &esp_logo_tiny);
-    lv_img_set_zoom(img_logo, 300);
-    lv_obj_align(img_logo, LV_ALIGN_CENTER, -64, -50);
+    // LV_IMG_DECLARE(esp_logo_tiny);
+    // lv_obj_t *img_logo = lv_img_create(lv_scr_act());
+    // lv_img_set_src(img_logo, &esp_logo_tiny);
+    // lv_img_set_zoom(img_logo, 300);
+    // lv_obj_align(img_logo, LV_ALIGN_CENTER, -64, -50);
     lv_obj_t *img_text = lv_label_create(lv_scr_act());         
-    lv_label_set_text(img_text, "Espressif"); 
+    lv_label_set_text(img_text, "Module Gateway H2"); 
     lv_obj_set_style_text_color(img_text, lv_color_black(), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(img_text, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_align_to(img_text, img_logo, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+    lv_obj_align(img_text, LV_ALIGN_CENTER, 0, -30);
 
     border_router = lv_label_create(lv_scr_act());         /*Add a label to the button*/
-    lv_label_set_text(border_router, "Thread Border Router"); /*Set the labels text*/
+    lv_label_set_text(border_router, "产测程序"); /*Set the labels text*/
     lv_obj_set_style_text_color(border_router, lv_color_black(), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(border_router, &lv_font_montserrat_26, LV_PART_MAIN);
+    lv_obj_set_style_text_font(border_router, &lv_font_Chinese_blod, LV_PART_MAIN);
     lv_obj_align(border_router, LV_ALIGN_CENTER, 0, 0);
 
 
     booting = lv_label_create(lv_scr_act());         /*Add a label to the button*/
-    lv_label_set_text(booting, "starting up..."); /*Set the labels text*/
-    lv_obj_set_style_text_color(booting, lv_color_black(), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(booting, &lv_font_montserrat_16, LV_PART_MAIN);
+    if (s_progress < 100) {
+        lv_label_set_text(booting, "固件烧录中"); /*Set the labels text*/
+        lv_obj_set_style_text_color(booting, lv_color_make(255, 255, 0), LV_STATE_DEFAULT);   // yellow
+    } else {
+        lv_label_set_text(booting, "固件烧录完成"); /*Set the labels text*/
+        lv_obj_set_style_text_color(booting, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);   // green
+    }
+    lv_obj_set_style_text_font(booting, &lv_font_Chinese_blod, LV_PART_MAIN);
     lv_obj_align_to(booting, border_router, LV_ALIGN_OUT_BOTTOM_MID, 0, 20);
     flag_ui_ready = true;
 }

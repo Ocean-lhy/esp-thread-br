@@ -222,6 +222,12 @@ static void ot_task_worker(void *ctx)
 #if CONFIG_AUTO_UPDATE_RCP
     try_update_ot_rcp(&s_openthread_platform_config);
 #endif
+
+    ui_fireware_updateing(100);
+
+    esp_rcp_update_deinit();
+    vTaskDelete(NULL);
+
     // Initialize border routing features
     esp_openthread_lock_acquire(portMAX_DELAY);
     ESP_ERROR_CHECK(esp_netif_attach(openthread_netif, esp_openthread_netif_glue_init(&s_openthread_platform_config)));
@@ -241,8 +247,8 @@ static void ot_task_worker(void *ctx)
     esp_openthread_netif_glue_deinit();
     esp_netif_destroy(openthread_netif);
     esp_vfs_eventfd_unregister();
-    esp_rcp_update_deinit();
-    vTaskDelete(NULL);
+    // esp_rcp_update_deinit();
+    // vTaskDelete(NULL);
 }
 
 void launch_openthread_border_router(const esp_openthread_platform_config_t *platform_config,
@@ -250,14 +256,15 @@ void launch_openthread_border_router(const esp_openthread_platform_config_t *pla
 {
     s_openthread_platform_config = *platform_config;
 
+#if CONFIG_OPENTHREAD_BR_UI
+    ESP_ERROR_CHECK(ui_for_br_start());
+#endif
+
 #if CONFIG_AUTO_UPDATE_RCP
     ESP_ERROR_CHECK(esp_rcp_update_init(update_config));
 #else
     OT_UNUSED_VARIABLE(update_config);
 #endif
 
-#if CONFIG_OPENTHREAD_BR_UI
-    ESP_ERROR_CHECK(ui_for_br_start());
-#endif
     xTaskCreate(ot_task_worker, "ot_br_main", 8192, xTaskGetCurrentTaskHandle(), 5, NULL);
 }
