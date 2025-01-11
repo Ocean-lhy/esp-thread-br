@@ -109,6 +109,7 @@ static void sort_valid_gpios(void) {
 #define FLOW_ROUNDS 2       // 流水次数
 #define FLOW_SPEED 200      // 流水速度
 #define ALL_ON_TIME 5000    // 全亮时间
+#define ALL_OFF_TIME 1000    // 全灭时间
 
 static void set_all_leds(bool on) 
 {
@@ -149,47 +150,11 @@ void app_main(void)
 
     while (1) 
     {
-        // flow stage
-        if (flow_count < FLOW_ROUNDS) 
-        {
-            if (led_on)
-            {
-                gpio_set_level(valid_gpios[current_led], 1);
-            }
-            else
-            {
-                gpio_set_level(valid_gpios[current_led], 0);
-                current_led = (current_led + 1) % GPIO_COUNT;
-                
-                // calculate full flow rounds
-                if (current_led == 0)
-                {
-                    flow_count++;  // direct count, no longer use led_cycles
-                }
-            }
-
-            led_on = !led_on;
-            if (led_on)
-            {
-                vTaskDelay(pdMS_TO_TICKS(10));
-            }
-            else
-            {
-                vTaskDelay(pdMS_TO_TICKS(FLOW_SPEED));
-            }
-        }
-        // all on stage
-        else
-        {  
-            set_all_leds(true);
-            vTaskDelay(pdMS_TO_TICKS(ALL_ON_TIME));
-            
-            set_all_leds(false);
-            
-            // recovery and start new flow rounds
-            flow_count = 0;
-            current_led = 0;
-            led_on = true;
-        }
+        set_all_leds(true);
+        vTaskDelay(pdMS_TO_TICKS(ALL_ON_TIME));
+        
+        set_all_leds(false);
+        vTaskDelay(pdMS_TO_TICKS(ALL_OFF_TIME));
+        
     }
 }
