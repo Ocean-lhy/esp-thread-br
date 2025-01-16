@@ -26,6 +26,8 @@
 #define RCP_SEQ_KEY "rcp_seq"
 #define TAG "RCP_UPDATE"
 
+uint8_t g_progress = 0;
+
 typedef struct esp_rcp_update_handle {
     nvs_handle_t nvs_handle;
     int8_t update_seq;
@@ -141,6 +143,11 @@ static esp_loader_error_t flash_binary(FILE *firmware, size_t size, size_t addre
 
         int progress = (int)(((float)written / binary_size) * 100);
         ESP_LOGI(TAG, "Progress: %d %%", progress);
+        
+        if (binary_size == 201376) {
+            g_progress = progress;
+        }
+
         fflush(stdout);
     };
 

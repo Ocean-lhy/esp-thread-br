@@ -54,6 +54,8 @@
 #define TAG "esp_ot_br"
 #define RCP_VERSION_MAX_SIZE 100
 
+extern uint8_t g_progress;
+
 static esp_openthread_platform_config_t s_openthread_platform_config;
 
 #if CONFIG_AUTO_UPDATE_RCP
@@ -223,7 +225,7 @@ static void ot_task_worker(void *ctx)
     try_update_ot_rcp(&s_openthread_platform_config);
 #endif
 
-    ui_fireware_updateing(100);
+    g_progress = 101;
 
     esp_rcp_update_deinit();
     vTaskDelete(NULL);
@@ -251,6 +253,21 @@ static void ot_task_worker(void *ctx)
     // vTaskDelete(NULL);
 }
 
+static void progress_update_task(void *arg)
+{
+    while (1) {
+        static uint8_t progress = 0;
+        if (g_progress != progress) {
+            progress = g_progress;
+            ui_fireware_updateing(progress);
+            if (progress > 100) {
+                vTaskDelete(NULL);
+            }
+        }
+        vTaskDelay(100);
+    }
+}
+
 void launch_openthread_border_router(const esp_openthread_platform_config_t *platform_config,
                                      const esp_rcp_update_config_t *update_config)
 {
@@ -259,6 +276,8 @@ void launch_openthread_border_router(const esp_openthread_platform_config_t *pla
 #if CONFIG_OPENTHREAD_BR_UI
     ESP_ERROR_CHECK(ui_for_br_start());
 #endif
+
+    xTaskCreate(progress_update_task, "progress_update_task", 2048, NULL, 5, NULL);
 
 #if CONFIG_AUTO_UPDATE_RCP
     ESP_ERROR_CHECK(esp_rcp_update_init(update_config));

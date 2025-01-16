@@ -51,12 +51,26 @@ static lv_obj_t *factoryreset_btn = NULL;
 
 lv_obj_t *border_router = NULL;
 lv_obj_t *booting = NULL;
+lv_obj_t *version_label = NULL;
 
 static uint8_t s_progress = 0;
 
 void ui_fireware_updateing(uint8_t progress)
 {
+    bsp_display_lock(0);
     s_progress = progress;
+    if (s_progress <= 100) {
+        char str_progress[21];
+        sprintf(str_progress, "固件烧录中 %d%%", s_progress);
+        lv_label_set_text(booting, str_progress); /*Set the labels text*/
+        lv_obj_set_style_text_color(booting, lv_color_make(255, 185, 15), LV_STATE_DEFAULT);   // deep yellow
+    } else {
+        lv_label_set_text(booting, "固件烧录完成"); /*Set the labels text*/
+        lv_obj_set_style_text_color(booting, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);   // green
+    }
+    lv_obj_set_style_text_font(booting, &lv_font_Chinese_blod, LV_PART_MAIN);
+    lv_obj_align_to(booting, border_router, LV_ALIGN_OUT_BOTTOM_MID, 0, 30);
+    bsp_display_unlock();
 }
 
 static void ui_after_boot(void)
@@ -81,15 +95,17 @@ static void ui_after_boot(void)
 
 
     booting = lv_label_create(lv_scr_act());         /*Add a label to the button*/
-    if (s_progress < 100) {
-        lv_label_set_text(booting, "固件烧录中"); /*Set the labels text*/
-        lv_obj_set_style_text_color(booting, lv_color_make(255, 255, 0), LV_STATE_DEFAULT);   // yellow
-    } else {
-        lv_label_set_text(booting, "固件烧录完成"); /*Set the labels text*/
-        lv_obj_set_style_text_color(booting, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);   // green
-    }
-    lv_obj_set_style_text_font(booting, &lv_font_Chinese_blod, LV_PART_MAIN);
-    lv_obj_align_to(booting, border_router, LV_ALIGN_OUT_BOTTOM_MID, 0, 20);
+    lv_label_set_text(booting, "Find Device..."); /*Set the labels text*/
+    lv_obj_set_style_text_color(booting, lv_color_make(255, 185, 15), LV_STATE_DEFAULT);   // yellow
+    lv_obj_set_style_text_font(booting, &lv_font_montserrat_16, LV_PART_MAIN);
+    lv_obj_align_to(booting, border_router, LV_ALIGN_OUT_BOTTOM_MID, 0, 30);
+
+    version_label = lv_label_create(lv_scr_act());
+    lv_label_set_text(version_label, "V1.0.0");
+    lv_obj_set_style_text_color(version_label, lv_color_black(), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(version_label, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_align_to(version_label, border_router, LV_ALIGN_OUT_BOTTOM_MID, 0, 15);
+
     flag_ui_ready = true;
 }
 
